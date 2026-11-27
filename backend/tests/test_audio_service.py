@@ -122,3 +122,13 @@ async def test_reject_duration_limit_exceeded(test_settings) -> None:
 
     with pytest.raises(AudioDurationExceededError):
         await service.validate_upload(upload)
+
+
+@pytest.mark.anyio
+async def test_reject_zero_duration_wav(test_settings) -> None:
+    service = AudioValidationService(test_settings)
+    zero_wav = build_wav_bytes(duration_seconds=0.0, sample_rate=16000)
+    upload = _make_upload_file(zero_wav, filename="silent.wav", content_type="audio/wav")
+
+    with pytest.raises(EmptyAudioError):
+        await service.validate_upload(upload)

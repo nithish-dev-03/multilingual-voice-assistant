@@ -45,9 +45,10 @@ export async function sendChatMessage({ message, conversationId, generateAudio }
   return response.json();
 }
 
-export async function sendVoiceAudio({ audioFile, conversationId }) {
+export async function sendVoiceAudio({ audioFile, conversationId, generateAudio = true }) {
   const formData = new FormData();
   formData.append("audio", audioFile);
+  formData.append("generate_audio", String(Boolean(generateAudio)));
   if (conversationId) {
     formData.append("conversation_id", conversationId);
   }

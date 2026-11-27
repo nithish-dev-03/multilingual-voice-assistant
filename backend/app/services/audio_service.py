@@ -128,6 +128,9 @@ class AudioValidationService:
                 "Unable to determine audio duration. Install ffprobe or upload WAV/FLAC/OGG audio."
             )
 
+        if duration is not None and duration <= 0:
+            raise EmptyAudioError("Audio recording contains zero seconds of audio.")
+
         if duration is not None and duration > self._settings.max_audio_duration_seconds:
             raise AudioDurationExceededError(
                 f"Audio duration ({duration:.1f}s) exceeds maximum allowed duration of "

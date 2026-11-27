@@ -153,6 +153,34 @@ async def test_voice_endpoint_empty_conversation_id_starts_new_conversation(
 
 
 @pytest.mark.anyio
+async def test_voice_endpoint_with_tts_disabled(make_test_client, test_settings) -> None:
+    async def handler(**kwargs):
+        if kwargs["model"] == test_settings.transcription_model:
+            return FakeInteractionResponse(output_text="Testing voice without TTS")
+        if kwargs.get("response_format"):
+            return FakeInteractionResponse(
+                output_text='{"language_code": "en", "language_name": "English"}'
+            )
+        return FakeInteractionResponse(output_text="Received your voice message.")
+
+    client, fake, _app = make_test_client(handler)
+    async with client:
+        resp = await client.post(
+            "/api/v1/voice",
+            data={"generate_audio": "false"},
+            files={"audio": ("voice-recording.wav", build_wav_bytes(), "audio/wav")},
+        )
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["input"]["transcription"] == "Testing voice without TTS"
+    assert body["assistant"]["text"] == "Received your voice message."
+    assert body["audio"] is None
+    tts_calls = [c for c in fake.aio.interactions.calls if c["model"] == test_settings.tts_model]
+    assert len(tts_calls) == 0
+
+
+@pytest.mark.anyio
 async def test_chat_endpoint_with_audio_and_without_audio(make_test_client, test_settings) -> None:
     tts_wav = build_wav_bytes(duration_seconds=0.3)
 

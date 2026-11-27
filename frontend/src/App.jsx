@@ -91,6 +91,7 @@ export default function App() {
       const response = await sendVoiceAudio({
         audioFile,
         conversationId,
+        generateAudio,
       });
       setConversationId(response.conversation_id);
       const turnId = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -103,6 +104,7 @@ export default function App() {
           text: response.input.transcription,
           languageCode: response.input.language_code,
           languageName: response.input.language_name,
+          userAudioBlob: audioFile,
         },
         {
           id: `${turnId}-assistant`,

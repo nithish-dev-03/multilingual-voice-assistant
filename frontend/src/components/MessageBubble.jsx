@@ -12,11 +12,14 @@ export default function MessageBubble({ message, autoPlayLatest }) {
   const audioRef = useRef(null);
 
   const audioUrl = useMemo(() => {
-    if (!message.audio?.data) {
-      return null;
+    if (message.audio?.data) {
+      return base64ToAudioBlobUrl(message.audio.data, message.audio.mime_type);
     }
-    return base64ToAudioBlobUrl(message.audio.data, message.audio.mime_type);
-  }, [message.audio]);
+    if (message.userAudioBlob) {
+      return URL.createObjectURL(message.userAudioBlob);
+    }
+    return null;
+  }, [message.audio, message.userAudioBlob]);
 
   useEffect(() => {
     return () => {
@@ -27,12 +30,12 @@ export default function MessageBubble({ message, autoPlayLatest }) {
   }, [audioUrl]);
 
   useEffect(() => {
-    if (audioUrl && autoPlayLatest && audioRef.current) {
+    if (!isUser && audioUrl && autoPlayLatest && audioRef.current) {
       audioRef.current.play().catch(() => {
         // Browser autoplay policies may block uninitiated playback; controls remain usable.
       });
     }
-  }, [audioUrl, autoPlayLatest]);
+  }, [isUser, audioUrl, autoPlayLatest]);
 
   const languageLabel = message.languageName
     ? message.languageCode

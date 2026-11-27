@@ -43,4 +43,4 @@ class VoiceConversationResponse(BaseModel):
     conversation_id: str
     input: VoiceInputInfo
     assistant: AssistantOutput
-    audio: AudioOutput
+    audio: AudioOutput | None = None

@@ -57,6 +57,10 @@ async def voice_conversation(
             ),
         ),
     ] = None,
+    generate_audio: Annotated[
+        bool,
+        Form(description="Whether to synthesize TTS audio for the assistant reply."),
+    ] = True,
 ) -> VoiceConversationResponse:
     """Process an uploaded audio turn: validate, transcribe, chat, and synthesize speech."""
     normalized_id = conversation_id.strip() if conversation_id else None
@@ -79,7 +83,11 @@ async def voice_conversation(
     )
     await conversation_service.save_turn(resolved_id, transcription.text, reply_text)
 
-    audio_bytes, audio_mime = await tts_service.synthesize(reply_text)
+    audio_output = None
+    if generate_audio:
+        audio_bytes, audio_mime = await tts_service.synthesize(reply_text)
+        audio_output = encode_audio_output(audio_bytes, audio_mime)
+
     return VoiceConversationResponse(
         conversation_id=resolved_id,
         input=VoiceInputInfo(
@@ -88,5 +96,5 @@ async def voice_conversation(
             language_name=transcription.language_name,
         ),
         assistant=AssistantOutput(text=reply_text),
-        audio=encode_audio_output(audio_bytes, audio_mime),
+        audio=audio_output,
     )
